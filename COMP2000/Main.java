@@ -11,14 +11,15 @@ public class Main {
             config = SimulationConfig.fromArgs(args);
         } catch (SimulationConfigException e) {
             System.err.println("Cannot start: " + e.getMessage());
-            if (e.getCause() != null) System.err.println("  caused by: " + e.getCause());
+            if (e.getCause() != null)
+                System.err.println("  caused by: " + e.getCause());
             System.err.println("Usage: java Main [key=value ...]");
             return;
         }
 
         World world = new World(config);
         System.out.println("Simulation seed: " + world.getSeed()
-            + "  (re-run with: java Main seed=" + world.getSeed() + ")");
+                + "  (re-run with: java Main seed=" + world.getSeed() + ")");
         System.out.println("Settings: " + config);
 
         Random rng = world.getRandom();
@@ -32,9 +33,12 @@ public class Main {
             int[] p = randomPointOutsideZone(world);
             world.addFox(new Fox(p[0], p[1]));
         }
-        for (int i = 0; i < config.getRabbits(); i++) world.addRabbit(new Rabbit(rng.nextInt(cols), rng.nextInt(rows)));
-        for (int i = 0; i < config.getMice(); i++)    world.addMouse(new Mouse(rng.nextInt(cols), rng.nextInt(rows)));
-        for (int i = 0; i < config.getFood(); i++)    world.addFood(new Food(rng.nextInt(cols), rng.nextInt(rows)));
+        for (int i = 0; i < config.getRabbits(); i++)
+            world.addRabbit(new Rabbit(rng.nextInt(cols), rng.nextInt(rows)));
+        for (int i = 0; i < config.getMice(); i++)
+            world.addMouse(new Mouse(rng.nextInt(cols), rng.nextInt(rows)));
+        for (int i = 0; i < config.getFood(); i++)
+            world.addFood(new Food(rng.nextInt(cols), rng.nextInt(rows)));
 
         SimPanel panel = new SimPanel(world);
         panel.setPreferredSize(new Dimension(cols * SimPanel.CELL_SIZE, rows * SimPanel.CELL_SIZE));
@@ -55,14 +59,17 @@ public class Main {
             if (world.getState() != SimulationState.RUNNING) {
                 ((Timer) e.getSource()).stop();
                 System.out.println("Ended at tick " + world.getTickCount() + ": " + world.getState()
-                    + "  births=" + world.getBirths() + " starved=" + world.getStarved()
-                    + " eaten=" + world.getEaten() + " hops=" + world.getHops());
+                        + "  births=" + world.getBirths() + " starved=" + world.getStarved()
+                        + " eaten=" + world.getEaten() + " oldAge=" + world.getOldAge() + " hops=" + world.getHops());
             }
         });
         timer.start();
     }
 
-    /** Keeps re-rolling until the point lands outside the refuge predators cannot enter. */
+    /**
+     * Keeps re-rolling until the point lands outside the refuge predators cannot
+     * enter.
+     */
     private static int[] randomPointOutsideZone(World world) {
         Random rng = world.getRandom();
         int x, y;
@@ -70,6 +77,6 @@ public class Main {
             x = rng.nextInt(world.getWidth());
             y = rng.nextInt(world.getHeight());
         } while (world.isInSafeZone(x, y));
-        return new int[]{x, y};
+        return new int[] { x, y };
     }
 }

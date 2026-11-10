@@ -34,7 +34,8 @@ public class GraphPanel extends JPanel {
         // higher, and including it flattens every species line to the floor.
         int peak = 1;
         for (Map.Entry<String, List<Integer>> e : history.entrySet()) {
-            if (e.getKey().equals("Food")) continue;
+            if (e.getKey().equals("Food"))
+                continue;
             List<Integer> series = e.getValue();
             for (int i = Math.max(0, series.size() - WINDOW); i < series.size(); i++) {
                 peak = Math.max(peak, series.get(i));
@@ -45,7 +46,8 @@ public class GraphPanel extends JPanel {
             List<Integer> series = entry.getValue();
             int from = Math.max(0, series.size() - WINDOW);
             int n = series.size() - from;
-            if (n < 2) continue;
+            if (n < 2)
+                continue;
             g.setColor(colours.get(entry.getKey()));
             for (int i = 1; i < n; i++) {
                 int x1 = (i - 1) * w / WINDOW, x2 = i * w / WINDOW;
@@ -69,7 +71,10 @@ public class GraphPanel extends JPanel {
         g.drawString(summary(), 4, h - 4);
     }
 
-    /** Clamped to the panel, so the food line pins to the top instead of flying off it. */
+    /**
+     * Clamped to the panel, so the food line pins to the top instead of flying off
+     * it.
+     */
     private int plot(int value, int peak, int h) {
         int y = h - 16 - value * (h - 30) / peak;
         return Math.max(14, y);
@@ -77,12 +82,14 @@ public class GraphPanel extends JPanel {
 
     private String summary() {
         String ending = world.getState() == SimulationState.RUNNING
-            ? "" : "   ENDED: " + world.getState();
+                ? ""
+                : "   ENDED: " + world.getState();
         return "tick " + world.getTickCount()
-             + "   births " + world.getBirths()
-             + "   starved " + world.getStarved()
-             + "   eaten " + world.getEaten()
-             + "   hops " + world.getHops()
-             + ending;
+                + "   births " + world.getBirths()
+                + "   starved " + world.getStarved()
+                + "   eaten " + world.getEaten()
+                + "   old age " + world.getOldAge()
+                + "   hops " + world.getHops()
+                + ending;
     }
 }

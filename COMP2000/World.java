@@ -1,10 +1,13 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.awt.Color;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * World owns every entity and drives the simulation. It stores each kind
@@ -32,7 +35,8 @@ public class World {
     private SimulationState state = SimulationState.RUNNING;
 
     private final Map<String, List<Integer>> history = new LinkedHashMap<>();
-    private int starved = 0, eaten = 0, births = 0, hops = 0, oldAge = 0;;
+    private int births = 0, hops = 0;
+    private final Map<DeathCause, Long> deaths = new EnumMap<>(DeathCause.class);
 
     // A rectangular refuge that Predators are physically barred from entering.
     // Rabbit and Mouse are ordinary Prey, so nothing stops them going in.
@@ -73,8 +77,13 @@ public class World {
     public void setMaxTicks(int t) { this.maxTicks = t; }
 
     public Map<String, List<Integer>> getHistory() { return history; }
-    public int getStarved() { return starved; }
-    public int getEaten() { return eaten; }
+    public int getStarved() { return deathsBy(DeathCause.STARVED); }
+    public int getEaten() { return deathsBy(DeathCause.EATEN); }
+    public int getOldAge() { return deathsBy(DeathCause.OLD_AGE); }
+
+    private int deathsBy(DeathCause cause) {
+        return deaths.getOrDefault(cause, 0L).intValue();
+    }
     public int getBirths() { return births; }
     public int getHops() { return hops; }
 
@@ -150,13 +159,9 @@ public class World {
     }
 
     public List<Entity> allEntities() {
-        List<Entity> all = new ArrayList<>();
-        all.addAll(hawks);
-        all.addAll(foxes);
-        all.addAll(rabbits);
-        all.addAll(mice);
-        all.addAll(food);
-        return all;
+        return Stream.of(hawks, foxes, rabbits, mice, food)
+            .flatMap(List::stream)
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public void update() {
@@ -236,12 +241,11 @@ public class World {
     }
 
     private void removeDead() {
-        for (Entity e : allEntities()) {
-            if (e.isAlive() || !(e instanceof Animal)) continue;
-            if (e.getDeathCause() == DeathCause.STARVED) starved++;
-            else if (e.getDeathCause() == DeathCause.EATEN) eaten++;
-            else if (e.getDeathCause() == DeathCause.OLD_AGE) oldAge++;
-        }
+        Map<DeathCause, Long> thisTick = allEntities().stream()
+            .filter(e -> e instanceof Animal && !e.isAlive())
+            .collect(Collectors.groupingBy(Entity::getDeathCause, Collectors.counting()));
+        thisTick.forEach((cause, count) -> deaths.merge(cause, count, Long::sum));
+
         hawks.removeIf(h -> !h.isAlive());
         foxes.removeIf(f -> !f.isAlive());
         rabbits.removeIf(r -> !r.isAlive());
