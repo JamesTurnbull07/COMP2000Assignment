@@ -22,9 +22,16 @@ public abstract class Animal extends Entity {
     protected int visionRadius;
     private boolean bredThisTick = false;
     protected int age = 0;
+    private final MovementStrategy movement;
 
     public Animal(int x, int y, double startHealth, int speed, int visionRadius) {
+        this(x, y, startHealth, speed, visionRadius, MovementStrategy.KING);
+    }
+
+    public Animal(int x, int y, double startHealth, int speed, int visionRadius,
+            MovementStrategy movement) {
         super(x, y);
+        this.movement = movement;
         this.health = startHealth;
         this.maxHealth = startHealth * 2;
         this.speed = speed;
@@ -155,18 +162,9 @@ public abstract class Animal extends Entity {
         setPosition(getX() + d[0], getY() + d[1]);
     }
 
-    /**
-     * How this animal covers a (dx, dy) gap in one tick, as {stepX, stepY}.
-     * The default is free movement in any of 8 directions; Fox and Hawk
-     * override it with their own restricted movement.
-     */
+    /** Uses this animals MovementStrategy Strategy pattern. */
     protected int[] stepToward(int dx, int dy) {
-        return new int[] { clampStep(dx), clampStep(dy) };
-    }
-
-    /** At most `speed` cells along an axis, never overshooting. */
-    protected int clampStep(int delta) {
-        return Math.max(-speed, Math.min(speed, delta));
+        return movement.step(dx, dy, speed);
     }
 
     /** Takes the World to reach its seeded Random. */

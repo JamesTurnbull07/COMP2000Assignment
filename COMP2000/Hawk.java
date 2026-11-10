@@ -5,20 +5,11 @@ public class Hawk extends Predator {
     private int restCounter = 0;
 
     public Hawk(int x, int y) {
-        super(x, y, 150, 3, 5);
+        super(x, y, 150, 3, 5, MovementStrategy.BISHOP);
     }
 
     @Override
     protected Animal newOffspring(int x, int y) { return new Hawk(x, y); }
-
-    /** Bishop: always diagonal, never straight, so it cannot track an axis-aligned target exactly. */
-    @Override
-    protected int[] stepToward(int dx, int dy) {
-        int sx = (dx == 0) ? 1 : Integer.signum(dx);
-        int sy = (dy == 0) ? 1 : Integer.signum(dy);
-        int m = Math.min(speed, Math.max(1, Math.max(Math.abs(dx), Math.abs(dy))));
-        return new int[]{ sx * m, sy * m };
-    }
 
     @Override
     protected void act(World world) {
