@@ -1,6 +1,19 @@
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class Ablation {
-    static void run(String label, String... args) throws Exception {
-        SimulationConfig c = SimulationConfig.fromArgs(args);
+    record Trial(String label, String... args) {}
+
+    static String run(Trial t) {
+        String label = t.label();
+        String[] args = t.args();
+        SimulationConfig c;
+        try {
+            c = SimulationConfig.fromArgs(args);
+        } catch (SimulationConfigException e) {
+            throw new IllegalArgumentException("Bad config for " + label, e);
+        }
         World w = new World(c);
         java.util.Random r = w.getRandom();
         for (int i=0;i<c.getHawks();i++)   w.addHawk(new Hawk(r.nextInt(c.getCols()), r.nextInt(c.getRows())));
@@ -17,13 +30,18 @@ public class Ablation {
             if (falling && R > prev + 4) { rebounds++; falling = false; }
             prev = R;
         }
-        System.out.printf("%-26s survived %4d ticks  peakPrey=%-3d rebounds=%d  births=%d%n",
+        return String.format("%-26s survived %4d ticks  peakPrey=%-3d rebounds=%d  births=%d",
             label, w.getTickCount(), peak, rebounds, w.getBirths());
     }
-    public static void main(String[] a) throws Exception {
-        for (String seed : new String[]{"918273645","555000111","777222333"}) {
-            run("refuge ON  seed "+seed,  "seed="+seed, "safeZone=1");
-            run("refuge OFF seed "+seed,  "seed="+seed, "safeZone=0");
-        }
+
+    public static void main(String[] a) {
+        List<String> results = Stream.of("918273645", "555000111", "777222333")
+            .flatMap(seed -> Stream.of(
+                new Trial("refuge ON  seed " + seed, "seed=" + seed, "safeZone=1"),
+                new Trial("refuge OFF seed " + seed, "seed=" + seed, "safeZone=0")))
+            .parallel()
+            .map(Ablation::run)
+            .collect(Collectors.toList());
+        results.forEach(System.out::println);
     }
 }
