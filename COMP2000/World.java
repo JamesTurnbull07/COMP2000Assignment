@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.DoubleSummaryStatistics;
 
 /**
  * World owns every entity and drives the simulation. It stores each kind
@@ -62,7 +63,8 @@ public class World {
         // produces near-identical first draws, so seeds 1 and 2 would open alike.
         this.rng = new Random(seed * 6364136223846793005L + 1442695040888963407L);
         this.grid = new Grid<>(width, height);
-        for (String species : speciesColours().keySet()) history.put(species, new ArrayList<>());
+        for (String species : speciesColours().keySet())
+            history.put(species, new ArrayList<>());
         this.safeZoneEnabled = config.hasSafeZone();
         this.zoneWidth = (int) (width * 0.28);
         this.zoneHeight = (int) (height * 0.38);
@@ -70,26 +72,61 @@ public class World {
         this.zoneY = height - zoneHeight - 1;
     }
 
-    public Grid<Entity> getGrid() { return grid; }
-    public SimulationState getState() { return state; }
-    public SimulationConfig getConfig() { return config; }
-    public int getTickCount() { return tickCount; }
-    public void setMaxTicks(int t) { this.maxTicks = t; }
+    public Grid<Entity> getGrid() {
+        return grid;
+    }
 
-    public Map<String, List<Integer>> getHistory() { return history; }
-    public int getStarved() { return deathsBy(DeathCause.STARVED); }
-    public int getEaten() { return deathsBy(DeathCause.EATEN); }
-    public int getOldAge() { return deathsBy(DeathCause.OLD_AGE); }
+    public SimulationState getState() {
+        return state;
+    }
+
+    public SimulationConfig getConfig() {
+        return config;
+    }
+
+    public int getTickCount() {
+        return tickCount;
+    }
+
+    public void setMaxTicks(int t) {
+        this.maxTicks = t;
+    }
+
+    public Map<String, List<Integer>> getHistory() {
+        return history;
+    }
+
+    public int getStarved() {
+        return deathsBy(DeathCause.STARVED);
+    }
+
+    public int getEaten() {
+        return deathsBy(DeathCause.EATEN);
+    }
+
+    public int getOldAge() {
+        return deathsBy(DeathCause.OLD_AGE);
+    }
 
     private int deathsBy(DeathCause cause) {
         return deaths.getOrDefault(cause, 0L).intValue();
     }
-    public int getBirths() { return births; }
-    public int getHops() { return hops; }
 
-    void recordHop() { hops++; }
+    public int getBirths() {
+        return births;
+    }
 
-    /** Each species reports its own colour, so the graph always matches the dots. */
+    public int getHops() {
+        return hops;
+    }
+
+    void recordHop() {
+        hops++;
+    }
+
+    /**
+     * Each species reports its own colour, so the graph always matches the dots.
+     */
     public Map<String, Color> speciesColours() {
         Map<String, Color> m = new LinkedHashMap<>();
         m.put("Hawks", new Hawk(0, 0).getColor());
@@ -107,38 +144,93 @@ public class World {
         history.get("Mice").add(mice.size());
         history.get("Food").add(food.size());
     }
-    public Random getRandom() { return rng; }
-    public long getSeed() { return seed; }
 
-    public boolean hasSafeZone() { return safeZoneEnabled; }
+    public Random getRandom() {
+        return rng;
+    }
+
+    public long getSeed() {
+        return seed;
+    }
+
+    public boolean hasSafeZone() {
+        return safeZoneEnabled;
+    }
 
     public boolean isInSafeZone(int px, int py) {
         return safeZoneEnabled
-            && px >= zoneX && px <= zoneX + zoneWidth
-            && py >= zoneY && py <= zoneY + zoneHeight;
+                && px >= zoneX && px <= zoneX + zoneWidth
+                && py >= zoneY && py <= zoneY + zoneHeight;
     }
 
-    public int getZoneCentreX() { return zoneX + zoneWidth / 2; }
-    public int getZoneCentreY() { return zoneY + zoneHeight / 2; }
+    public int getZoneCentreX() {
+        return zoneX + zoneWidth / 2;
+    }
 
-    public int getZoneX() { return zoneX; }
-    public int getZoneY() { return zoneY; }
-    public int getZoneWidth() { return zoneWidth; }
-    public int getZoneHeight() { return zoneHeight; }
+    public int getZoneCentreY() {
+        return zoneY + zoneHeight / 2;
+    }
 
-    public List<Hawk> getHawks() { return hawks; }
-    public List<Fox> getFoxes() { return foxes; }
-    public List<Rabbit> getRabbits() { return rabbits; }
-    public List<Mouse> getMice() { return mice; }
-    public List<Food> getFood() { return food; }
+    public int getZoneX() {
+        return zoneX;
+    }
 
-    public void addHawk(Hawk h) { hawks.add(h); }
-    public void addFox(Fox f) { foxes.add(f); }
-    public void addRabbit(Rabbit r) { rabbits.add(r); }
-    public void addMouse(Mouse m) { mice.add(m); }
-    public void addFood(Food f) { food.add(f); }
+    public int getZoneY() {
+        return zoneY;
+    }
 
-    /** Places one offspring next to its parent. Throws if there is no room inside the world. */
+    public int getZoneWidth() {
+        return zoneWidth;
+    }
+
+    public int getZoneHeight() {
+        return zoneHeight;
+    }
+
+    public List<Hawk> getHawks() {
+        return hawks;
+    }
+
+    public List<Fox> getFoxes() {
+        return foxes;
+    }
+
+    public List<Rabbit> getRabbits() {
+        return rabbits;
+    }
+
+    public List<Mouse> getMice() {
+        return mice;
+    }
+
+    public List<Food> getFood() {
+        return food;
+    }
+
+    public void addHawk(Hawk h) {
+        hawks.add(h);
+    }
+
+    public void addFox(Fox f) {
+        foxes.add(f);
+    }
+
+    public void addRabbit(Rabbit r) {
+        rabbits.add(r);
+    }
+
+    public void addMouse(Mouse m) {
+        mice.add(m);
+    }
+
+    public void addFood(Food f) {
+        food.add(f);
+    }
+
+    /**
+     * Places one offspring next to its parent. Throws if there is no room inside
+     * the world.
+     */
     public Animal spawnNear(Animal parent) throws SpawnException {
         int x = parent.getX() + rng.nextInt(3) - 1;
         int y = parent.getY() + rng.nextInt(3) - 1;
@@ -152,20 +244,35 @@ public class World {
     }
 
     private void register(Animal a) {
-        if (a instanceof Hawk) hawks.add((Hawk) a);
-        else if (a instanceof Fox) foxes.add((Fox) a);
-        else if (a instanceof Rabbit) rabbits.add((Rabbit) a);
-        else if (a instanceof Mouse) mice.add((Mouse) a);
+        if (a instanceof Hawk)
+            hawks.add((Hawk) a);
+        else if (a instanceof Fox)
+            foxes.add((Fox) a);
+        else if (a instanceof Rabbit)
+            rabbits.add((Rabbit) a);
+        else if (a instanceof Mouse)
+            mice.add((Mouse) a);
+    }
+
+    public Map<String, DoubleSummaryStatistics> fedLevelBySpecies() {
+        return Stream.of(hawks, foxes, rabbits, mice)
+                .flatMap(List::stream)
+                .filter(Entity::isAlive)
+                .collect(Collectors.groupingBy(
+                        a -> a.getClass().getSimpleName(),
+                        LinkedHashMap::new,
+                        Collectors.summarizingDouble(a -> 100 * a.getHealth() / a.getMaxHealth())));
     }
 
     public List<Entity> allEntities() {
         return Stream.of(hawks, foxes, rabbits, mice, food)
-            .flatMap(List::stream)
-            .collect(Collectors.toCollection(ArrayList::new));
+                .flatMap(List::stream)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public void update() {
-        if (state != SimulationState.RUNNING) return;
+        if (state != SimulationState.RUNNING)
+            return;
         tickCount++;
         rebuildGrid();
 
@@ -184,12 +291,12 @@ public class World {
         removeDead();
 
         for (int i = 0; i < config.getFoodPerTick() && food.size() < config.getMaxFood(); i++) {
-    // superfood spawns 5% of the time and is worth 3 times more than normal food
-    boolean isSuper = rng.nextInt(100) < config.getSuperFoodChance();
-    Food f = isSuper ? new SuperFood(rng.nextInt(width), rng.nextInt(height))
-                      : new Food(rng.nextInt(width), rng.nextInt(height));
-    food.add(f);
-}
+            // superfood spawns 5% of the time and is worth 3 times more than normal food
+            boolean isSuper = rng.nextInt(100) < config.getSuperFoodChance();
+            Food f = isSuper ? new SuperFood(rng.nextInt(width), rng.nextInt(height))
+                    : new Food(rng.nextInt(width), rng.nextInt(height));
+            food.add(f);
+        }
 
         recordHistory();
         state = evaluateState();
@@ -197,9 +304,12 @@ public class World {
 
     /** Extinction is an expected outcome, so it is returned, never thrown. */
     private SimulationState evaluateState() {
-        if (rabbits.isEmpty() && mice.isEmpty()) return SimulationState.PREY_EXTINCT;
-        if (hawks.isEmpty() && foxes.isEmpty()) return SimulationState.PREDATORS_EXTINCT;
-        if (maxTicks > 0 && tickCount >= maxTicks) return SimulationState.TIME_LIMIT;
+        if (rabbits.isEmpty() && mice.isEmpty())
+            return SimulationState.PREY_EXTINCT;
+        if (hawks.isEmpty() && foxes.isEmpty())
+            return SimulationState.PREDATORS_EXTINCT;
+        if (maxTicks > 0 && tickCount >= maxTicks)
+            return SimulationState.TIME_LIMIT;
         return SimulationState.RUNNING;
     }
 
@@ -210,23 +320,34 @@ public class World {
     private void rebuildGrid() {
         grid.clear();
         for (Entity e : allEntities()) {
-            if (!e.isAlive()) continue;
-            if (e instanceof Animal) ((Animal) e).resetBreedFlag();
-            if (grid.contains(e.getX(), e.getY())) grid.add(e);
+            if (!e.isAlive())
+                continue;
+            if (e instanceof Animal)
+                ((Animal) e).resetBreedFlag();
+            if (grid.contains(e.getX(), e.getY()))
+                grid.add(e);
         }
     }
 
-    /** setPosition() is protected on Entity, but World is a same-package collaborator, so it can call it. */
+    /**
+     * setPosition() is protected on Entity, but World is a same-package
+     * collaborator, so it can call it.
+     */
     private void clampToBounds(Entity e) {
         int clampedX = Math.max(0, Math.min(e.getX(), width - 1));
         int clampedY = Math.max(0, Math.min(e.getY(), height - 1));
         e.setPosition(clampedX, clampedY);
     }
 
-    /** If a Predator ended its move inside the safe zone, push it back out to the nearest edge. */
+    /**
+     * If a Predator ended its move inside the safe zone, push it back out to the
+     * nearest edge.
+     */
     private void keepPredatorsOutOfZone(Entity e) {
-        if (!(e instanceof Predator)) return;
-        if (!isInSafeZone(e.getX(), e.getY())) return;
+        if (!(e instanceof Predator))
+            return;
+        if (!isInSafeZone(e.getX(), e.getY()))
+            return;
 
         int distLeft = e.getX() - zoneX;
         int distRight = (zoneX + zoneWidth) - e.getX();
@@ -234,16 +355,20 @@ public class World {
         int distBottom = (zoneY + zoneHeight) - e.getY();
         int nearest = Math.min(Math.min(distLeft, distRight), Math.min(distTop, distBottom));
 
-        if (nearest == distLeft) e.setPosition(zoneX - 1, e.getY());
-        else if (nearest == distRight) e.setPosition(zoneX + zoneWidth + 1, e.getY());
-        else if (nearest == distTop) e.setPosition(e.getX(), zoneY - 1);
-        else e.setPosition(e.getX(), zoneY + zoneHeight + 1);
+        if (nearest == distLeft)
+            e.setPosition(zoneX - 1, e.getY());
+        else if (nearest == distRight)
+            e.setPosition(zoneX + zoneWidth + 1, e.getY());
+        else if (nearest == distTop)
+            e.setPosition(e.getX(), zoneY - 1);
+        else
+            e.setPosition(e.getX(), zoneY + zoneHeight + 1);
     }
 
     private void removeDead() {
         Map<DeathCause, Long> thisTick = allEntities().stream()
-            .filter(e -> e instanceof Animal && !e.isAlive())
-            .collect(Collectors.groupingBy(Entity::getDeathCause, Collectors.counting()));
+                .filter(e -> e instanceof Animal && !e.isAlive())
+                .collect(Collectors.groupingBy(Entity::getDeathCause, Collectors.counting()));
         thisTick.forEach((cause, count) -> deaths.merge(cause, count, Long::sum));
 
         hawks.removeIf(h -> !h.isAlive());
@@ -253,6 +378,11 @@ public class World {
         food.removeIf(f -> !f.isAlive());
     }
 
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
 }
